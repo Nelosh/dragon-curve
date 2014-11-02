@@ -2,10 +2,12 @@ package dragon
 
 import java.awt.{BasicStroke, Color}
 
+import dragon.Edge.Move
+
 object Config {
-    val edgeLength = 2
-    val generations = 17
-    val startPosition = Pos(Image.width * 1 / 2, Image.height * 1 / 2)
+    val edgeLength = 10
+    val generations = 15
+    val startPosition = Pos(Image.width * 3 / 4, Image.height * 1 / 3)
 
     val fileName: String = "D:\\tmp\\drawing.png"
 
@@ -18,10 +20,47 @@ object Config {
 
 }
 
+case class Line(start: Pos, end: Pos) {
+
+    import java.lang.Math._
+
+    def length: Double = sqrt(pow(end.x - start.x, 2) + pow(end.y - start.y, 2))
+    def versor: Pos = (end - start).norm
+}
+
 object Main extends App {
-    private val startTime: Long = System.nanoTime
-    Dragon.draw(Config.generations)
-    println((System.nanoTime() - startTime) / 1000000.0)
+
+    import dragon.Config._
+
+    private val startLine: Line = Line(startPosition, startPosition + Pos(0, edgeLength))
+
+    withTime("Drawing Dragon took: ") {
+
+        val dragonCurve: Dragon = new Dragon(Config.generations)
+        val lines: Seq[Line] = dragonCurve.edges.foldLeft(List(startLine))((p, e) => MoveToLine(p.head, e) :: p)
+
+        Painter.lines(lines.reverse)
+        Painter.out(fileName)
+
+    }
+
+    def MoveToLine(line: Line, move: Move): Line = {
+        val direction = Direction(line.versor)
+        move match {
+            case Edge.Right => Line(line.end, direction.right.forward(line.end, line.length.toInt))
+            case Edge.Left => Line(line.end, direction.left.forward(line.end, line.length.toInt))
+        }
+    }
+
+    def withTime[B](msg: String)(f: => B): B = {
+        val startTime: Long = System.nanoTime()
+
+        val result = f
+
+        val finishTime: Double = (System.nanoTime() - startTime) / 1000000.0
+        println(s"$msg ${finishTime}ms")
+        result
+    }
 }
 
 object Painter {
@@ -40,55 +79,35 @@ object Painter {
 
     def line(start: Pos, end: Pos) = g.draw(new Line2D.Double(start.x, start.y, end.x, end.y))
 
+    def lines(l: Iterable[Line]) = l.par.foreach(elem => line(elem.start, elem.end))
+
     def out(fileName: String) = {
         ImageIO.write(canvas, "png", new File(fileName))
     }
 }
 
-abstract class Turtle(var currentPos: Pos = Pos(0, 0)) {
-    val painter = Painter
-
-    var currentDirection: Direction = Up
-
-    def right() = currentDirection = currentDirection.right
-    def left() = currentDirection = currentDirection.left
-
-    def forward(n: Int) = {
-        val newPosition: Pos = currentDirection.forward(currentPos, n)
-        drawLine(currentPos, newPosition)
-        currentPos = newPosition
-    }
-
-    def drawLine(start: Pos, end: Pos) = painter.line(start, end)
-    def saveImage() = painter.out(Config.fileName)
-}
-
-
-object Dragon {
-    type Curve = Seq[Move]
-    val startTurn: Curve = Seq(Right)
-
-    object turtle extends Turtle(Config.startPosition)
+object Edge {
 
     trait Move {
-
-        def turn()
-        def draw() = {
-            turn(); turtle.forward(Config.edgeLength)
-        }
         def invert: Move
     }
 
     case object Right extends Move {
-        def turn() = turtle.right()
         def invert: Move = Left
     }
 
     case object Left extends Move {
-        def turn() = turtle.left()
         def invert: Move = Right
     }
 
+}
+
+class Dragon(generations: Int) {
+
+    type Curve = Seq[Move]
+    val startTurn: Curve = Seq(Edge.Right)
+
+    lazy val edges: Curve = iteration(generations)
 
     def iteration(n: Int): Curve = {
         def iterAcc(n: Int, acc: Curve): Curve =
@@ -98,8 +117,4 @@ object Dragon {
         iterAcc(n, startTurn)
     }
 
-    def draw(generations: Int) {
-        iteration(generations) foreach (_.draw())
-        turtle.saveImage()
-    }
 }
