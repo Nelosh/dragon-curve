@@ -11,6 +11,7 @@ object LocalImplicits {
 }
 
 case class Pos(x: Int, y: Int) {
+
     def +(that: Pos): Pos = Pos(this.x + that.x, this.y + that.y)
     def -(that: Pos): Pos = Pos(this.x - that.x, this.y - that.y)
     def *(n: Int): Pos = Pos(x * n, y * n)
@@ -32,7 +33,6 @@ abstract class Direction(val versor: Pos) {
     def forward(start: Pos, n: Int): Pos = start + versor * n
     def right: Direction
     def left: Direction
-    
 }
 
 object Direction {

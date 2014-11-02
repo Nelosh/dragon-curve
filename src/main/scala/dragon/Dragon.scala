@@ -5,11 +5,11 @@ import java.awt.{BasicStroke, Color}
 import dragon.Edge.Move
 
 object Config {
-    val edgeLength = 10
-    val generations = 15
-    val startPosition = Pos(Image.width * 3 / 4, Image.height * 1 / 3)
+    val edgeLength = 2
+    val generations = 20
+    val startPosition = Pos(Image.width * 3 / 4, Image.height * 3 / 4)
 
-    val fileName: String = "D:\\tmp\\drawing.png"
+    val fileName: String = "D:\\tmp\\dragon-turtleless.png"
 
     object Image {
         val width: Int = 10000
