@@ -4,10 +4,10 @@ import java.awt.{BasicStroke, Color}
 
 object Config {
     val edgeLength = 2
-    val generations = 17
-    val startPosition = Pos(Image.width * 1 / 2, Image.height * 1 / 2)
+    val generations = 20
+    val startPosition = Pos(Image.width * 3 / 4, Image.height * 3 / 4)
 
-    val fileName: String = "D:\\tmp\\drawing.png"
+    val fileName: String = "D:\\tmp\\dragon-turtle.png"
 
     object Image {
         val width: Int = 10000
