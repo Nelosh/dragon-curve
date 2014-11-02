@@ -20,17 +20,10 @@ object Config {
 
 }
 
-case class Line(start: Pos, end: Pos) {
-
-    import java.lang.Math._
-
-    def length: Double = sqrt(pow(end.x - start.x, 2) + pow(end.y - start.y, 2))
-    def versor: Pos = (end - start).norm
-}
-
 object Main extends App {
 
     import dragon.Config._
+    import dragon.Main.Util._
 
     private val startLine: Line = Line(startPosition, startPosition + Pos(0, edgeLength))
 
@@ -39,28 +32,32 @@ object Main extends App {
         val dragonCurve: Dragon = new Dragon(Config.generations)
         val lines: Seq[Line] = dragonCurve.edges.foldLeft(List(startLine))((p, e) => MoveToLine(p.head, e) :: p)
 
-        Painter.lines(lines.reverse)
+        Painter.lines(lines)
         Painter.out(fileName)
 
     }
 
-    def MoveToLine(line: Line, move: Move): Line = {
-        val direction = Direction(line.versor)
-        move match {
-            case Edge.Right => Line(line.end, direction.right.forward(line.end, line.length.toInt))
-            case Edge.Left => Line(line.end, direction.left.forward(line.end, line.length.toInt))
+    object Util {
+
+        def MoveToLine(line: Line, move: Move): Line = {
+            val direction = Direction(line.versor)
+            move match {
+                case Edge.Right => Line(line.end, direction.right.forward(line.end, line.length.toInt))
+                case Edge.Left => Line(line.end, direction.left.forward(line.end, line.length.toInt))
+            }
+        }
+
+        def withTime[B](msg: String)(f: => B): B = {
+            val startTime: Long = System.nanoTime()
+
+            val result = f
+
+            val finishTime: Double = (System.nanoTime() - startTime) / 1000000.0
+            println(s"$msg ${finishTime}ms")
+            result
         }
     }
 
-    def withTime[B](msg: String)(f: => B): B = {
-        val startTime: Long = System.nanoTime()
-
-        val result = f
-
-        val finishTime: Double = (System.nanoTime() - startTime) / 1000000.0
-        println(s"$msg ${finishTime}ms")
-        result
-    }
 }
 
 object Painter {

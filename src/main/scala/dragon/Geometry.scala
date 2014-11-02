@@ -20,6 +20,14 @@ case class Pos(x: Int, y: Int) {
 
 }
 
+case class Line(start: Pos, end: Pos) {
+
+    import java.lang.Math._
+
+    def length: Double = sqrt(pow(end.x - start.x, 2) + pow(end.y - start.y, 2))
+    def versor: Pos = (end - start).norm
+}
+
 abstract class Direction(val versor: Pos) {
     def forward(start: Pos, n: Int): Pos = start + versor * n
     def right: Direction
